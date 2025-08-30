@@ -1,53 +1,64 @@
 <!DOCTYPE html>
 <html lang="en">
-    <head>
-        {% load static %}
-        {% load bootstrap4 %}
-        <meta charset="utf-8">
-        <title>TCG Companion</title>
-        {% include "bootstrap.html" %}
-        <link rel="stylesheet" href="{% static 'pokemon.css' %}?v=1.01"/>
-        <script src="{% static 'strategy.js' %}"></script>
-    </head>
-    <body style ="background-color: #2c2c2c; color: #f5f5f5;">
-        {% include "navigation.html" %}
-        <h1>Welcome To Your Deck</h1>
-        <div class="text-center">
-            <div style ="display: inline-block;">
-                <img src="{% static '201-v-2534047325.png' %}" alt="Unown V" class="unownv">
-                <img src="{% static 'pokemon-logo.png' %}" alt="Pokémon Logo" class="logo">
-                <img src="{% static 'unown-j-918977700.png' %}" alt="Unown J" class="unownj">
-            </div>
-        </div>
 
-        {% if entries %}
-            <div class="image-matrix">
-                {% for entry in entries %}
-                    <img src="{{ entry.card.image }}" alt="{{ entry.card.name }}" class="img_fluid">
-                {% endfor %}
-            </div>
+<head>
+    {% load static %}
+    {% load bootstrap4 %}
+    {% include "bootstrap.html" %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCG Companion</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}?v=1.01" />
+    <script src="{% static 'strategy.js' %}"></script>
+</head>
 
-            <div class="text-center mt-4">
-                <form id="strategy-form" action="/generate-strategy/" method="POST">
-                    {% csrf_token %}
-                    <button type="submit" class="btn btn-success">Generate Deck Strategy</button>
-                </form>
-            </div>
-    
-            <div id="strategy-box" class="jumbotron mt-3 p-4" style="background-color: #000000; color: #f5f5f5; display: none;">
-                <h3>Deck Strategy</h3>
-                <div id="strategy-text"></div>
-            </div>
-        {% endif %}
+<body>
+    {% include "navigation.html" %}
 
-        <div class="jumbotron py-4 search" style="background-color: #000000;">
-            <form method="POST">
+    <div id="card-search" class="container">
+        <div class="jumbotron py-4 search">
+            <h1>Add to Deck</h1>
+            <form method="POST" autocomplete="off">
                 {% csrf_token %}
                 {% bootstrap_form search_card_form %}
-                <button type="submit" class="btn btn-primary">Add Card</button>
-                <button type="submit" class="btn btn-primary" name="delete">Delete Card</button>
+                <button class="btn btn-primary">Add Card</button>
             </form>
         </div>
-    <script>AI();</script>
+    </div>
+
+    {% if entries %}
+    <div class="card-matrix">
+        {% for entry in entries %}
+        <div class="square">
+            <div class="image-wrapper">
+                <img src="{{ entry.card.image }}" alt="{{ entry.card.name }}">
+            </div>
+            <div class="button-wrapper">
+                <form method="POST">
+                    {% csrf_token %}
+                    <input type="hidden" name="card-name" value="{{ entry.card.name }}">
+                    <input type="hidden" name="card-number" value="{{ entry.card.number }}">
+                    <button class="btn btn-primary" name="delete">Delete</button>
+                </form>
+            </div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="text-center mt-4">
+        <form id="strategy-form" action="/generate-strategy/" method="POST">
+            {% csrf_token %}
+            <button class="btn btn-primary">Generate Deck Strategy</button>
+        </form>
+    </div>
+
+    <script>generateStrategy();</script>
+
+    <div id="strategy-box" class="jumbotron mt-3 p-4">
+        <h3>Deck Strategy</h3>
+        <div id="strategy-text"></div>
+    </div>
+    {% endif %}
 </body>
+
 </html>

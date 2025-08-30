@@ -1,19 +1,29 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-    {% include "bootstrap.html" %}
     {% load static %}
     {% load bootstrap4 %}
+    {% include "bootstrap.html" %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCG Companion</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}?v=1.01" />
 </head>
+
 <body>
+    {% include "navigation.html" %}
+
     <div class="container">
         <div class="jumbotron">
-            <h1>Join</h1>
-            <form method="POST">
+            <h1>Create an Account</h1>
+            <form method="POST" autocomplete="off">
                 {% csrf_token %}
                 {% bootstrap_form join_form %}
-                <input type="submit" class="btn btn-primary" value="Join" />
+                <button class="btn btn-primary w-100">Join</button>
             </form>
         </div>
     </div>
 </body>
+
 </html>

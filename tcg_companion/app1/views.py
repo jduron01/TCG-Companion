@@ -8,50 +8,68 @@ from app1.forms import SearchCardForm, JoinForm, LoginForm
 import requests
 from pokemontcgsdk import Card
 from .utils.gemini import getDeckStrategy
+from django.contrib import messages
 
-@login_required(login_url="/login")
+
+@login_required(login_url="/login/")
 def home(request):
     return render(request, "app1/home.html")
+
 
 @login_required(login_url="/login/")
 def modifyDeck(request):
     page_data = {"search_card_form": SearchCardForm}
 
     if request.method == "POST":
+        if "delete" in request.POST:
+            card_name = request.POST.get("card-name")
+            card_number = request.POST.get("card-number")
+
+            try:
+                deck = Deck.objects.get(user=request.user)
+                card = CardData.objects.get(name=card_name, number=card_number)
+                entry = DeckEntry.objects.get(deck=deck, card=card)
+
+                if entry.count > 1:
+                    entry.count -= 1
+                    entry.save()
+                else:
+                    entry.delete()
+
+                page_data["entries"] = deck.entries.all()
+
+                return redirect("/deck/")
+            except (
+                Deck.DoesNotExist,
+                CardData.DoesNotExist,
+                DeckEntry.DoesNotExist,
+            ):
+                messages.error(request, "Error deleting card")
+
+            return render(request, "app1/deck.html", page_data)
+
         search_card_form = SearchCardForm(request.POST)
 
         if search_card_form.is_valid():
-            card_name = search_card_form.cleaned_data["card_name"]
-            set_name = search_card_form.cleaned_data["set_name"]
-            card_number = search_card_form.cleaned_data["card_number"]
+            card_name = search_card_form.cleaned_data["card_name"].strip()
+            card_name = card_name[0].upper() + card_name[1:]
 
-            if "delete" in request.POST:
-                deck = None
+            set_name = search_card_form.cleaned_data["set_name"].strip()
+            set_name = set_name[0].upper() + set_name[1:]
 
-                try:
-                    deck = Deck.objects.get(user=request.user)
-                    card = CardData.objects.get(name=card_name, number=card_number)
-                    entry = DeckEntry.objects.get(deck=deck, card=card)
-
-                    if entry.count > 1:
-                        entry.count -= 1
-                        entry.save()
-                    else:
-                        entry.delete()
-                except (Deck.DoesNotExist, CardData.DoesNotExist, DeckEntry.DoesNotExist):
-                    pass
-
-                page_data["entries"] = deck.entries.all()
-                return render(request, "app1/deck.html", page_data)
+            card_number = search_card_form.cleaned_data["card_number"].strip()
 
             card = getCardData(card_name, set_name, card_number)
-            deck = None
 
             if not card:
                 try:
-                    page_data["entries"] = Deck.objects.get(user=request.user).entries.all()
+                    page_data["entries"] = Deck.objects.get(
+                        user=request.user
+                    ).entries.all()
+
+                    return redirect("/deck/")
                 except Deck.DoesNotExist:
-                    pass
+                    messages.error(request, "Error adding card, deck does not exist")
 
                 return render(request, "app1/deck.html", page_data)
 
@@ -63,6 +81,10 @@ def modifyDeck(request):
                     DeckEntry.objects.get(deck=deck, card=card).save()
                 except DeckEntry.DoesNotExist:
                     DeckEntry(deck=deck, card=card).save()
+
+                page_data["entries"] = deck.entries.all()
+
+                return redirect("/deck/")
             except Deck.DoesNotExist:
                 deck = Deck(user=request.user)
                 deck.save()
@@ -73,59 +95,78 @@ def modifyDeck(request):
                 except DeckEntry.DoesNotExist:
                     DeckEntry(deck=deck, card=card).save()
 
-            page_data["entries"] = deck.entries.all()
-            return render(request, "app1/deck.html", page_data)
+                page_data["entries"] = deck.entries.all()
+
+                return redirect("/deck/")
         else:
             page_data["search_card_form"] = search_card_form
 
     try:
         page_data["entries"] = Deck.objects.get(user=request.user).entries.all()
     except Deck.DoesNotExist:
-        pass
+        messages.error(request, "Create a deck to view cards")
 
     return render(request, "app1/deck.html", page_data)
+
 
 @login_required(login_url="/login/")
 def modifyCollection(request):
     page_data = {"search_card_form": SearchCardForm}
 
     if request.method == "POST":
-        search_card_form = SearchCardForm(request.POST)
+        if "delete" in request.POST:
+            card_name = request.POST.get("card-name")
+            card_number = request.POST.get("card-number")
 
-        if search_card_form.is_valid():
-            card_name = search_card_form.cleaned_data["card_name"]
-            set_name = search_card_form.cleaned_data["set_name"]
-            card_number = search_card_form.cleaned_data["card_number"]
+            try:
+                collection = Collection.objects.get(user=request.user)
+                card = CardData.objects.get(name=card_name, number=card_number)
+                entry = CollectionEntry.objects.get(collection=collection, card=card)
 
-            if "delete" in request.POST:
-                collection = None
-
-                try:
-                    collection = Collection.objects.get(user=request.user)
-                    card = CardData.objects.get(name=card_name, number=card_number)
-                    entry = CollectionEntry.objects.get(collection=collection, card=card)
-                    
-                    if entry.count > 1:
-                        entry.count -= 1
-                        entry.save()
-                    else:
-                        entry.delete()
-                except (Collection.DoesNotExist, CardData.DoesNotExist, CollectionEntry.DoesNotExist):
-                    pass
+                if entry.count > 1:
+                    entry.count -= 1
+                    entry.save()
+                else:
+                    entry.delete()
 
                 page_data["entries"] = collection.entries.all()
                 page_data["count"] = len(page_data["entries"])
-                return render(request, "app1/collection.html", page_data)
+
+                return redirect("/collection/")
+            except (
+                Collection.DoesNotExist,
+                CardData.DoesNotExist,
+                CollectionEntry.DoesNotExist,
+            ):
+                messages.error(request, "Error deleting card")
+
+            return render(request, "app1/collection.html", page_data)
+
+        search_card_form = SearchCardForm(request.POST)
+
+        if search_card_form.is_valid():
+            card_name = search_card_form.cleaned_data["card_name"].strip()
+            card_name = card_name[0].upper() + card_name[1:]
+
+            set_name = search_card_form.cleaned_data["set_name"].strip()
+            set_name = set_name[0].upper() + set_name[1:]
+
+            card_number = search_card_form.cleaned_data["card_number"].strip()
 
             card = getCardData(card_name, set_name, card_number)
-            collection = None
 
             if not card:
                 try:
-                    page_data["entries"] = Collection.objects.get(user=request.user).entries.all()
+                    page_data["entries"] = Collection.objects.get(
+                        user=request.user
+                    ).entries.all()
                     page_data["count"] = len(page_data["entries"])
+
+                    return redirect("/collection/")
                 except Collection.DoesNotExist:
-                    pass
+                    messages.error(
+                        request, "Error creating card, collection does not exist"
+                    )
 
                 return render(request, "app1/collection.html", page_data)
 
@@ -133,23 +174,33 @@ def modifyCollection(request):
                 collection = Collection.objects.get(user=request.user)
 
                 try:
-                    CollectionEntry.objects.get(collection=collection, card=card).count += 1
+                    CollectionEntry.objects.get(
+                        collection=collection, card=card
+                    ).count += 1
                     CollectionEntry.objects.get(collection=collection, card=card).save()
                 except CollectionEntry.DoesNotExist:
                     CollectionEntry(collection=collection, card=card).save()
+
+                page_data["entries"] = collection.entries.all()
+                page_data["count"] = len(page_data["entries"])
+
+                return redirect("/collection/")
             except Collection.DoesNotExist:
                 collection = Collection(user=request.user)
                 collection.save()
 
                 try:
-                    CollectionEntry.objects.get(collection=collection, card=card).count += 1
+                    CollectionEntry.objects.get(
+                        collection=collection, card=card
+                    ).count += 1
                     CollectionEntry.objects.get(collection=collection, card=card).save()
                 except CollectionEntry.DoesNotExist:
                     CollectionEntry(collection=collection, card=card).save()
 
-            page_data["entries"] = collection.entries.all()
-            page_data["count"] = len(page_data["entries"])
-            return render(request, "app1/collection.html", page_data)
+                page_data["entries"] = collection.entries.all()
+                page_data["count"] = len(page_data["entries"])
+
+                return redirect("/collection/")
         else:
             page_data["search_card_form"] = search_card_form
 
@@ -157,9 +208,10 @@ def modifyCollection(request):
         page_data["entries"] = Collection.objects.get(user=request.user).entries.all()
         page_data["count"] = len(page_data["entries"])
     except Collection.DoesNotExist:
-        pass
+        messages.error(request, "Create a collection to view cards")
 
     return render(request, "app1/collection.html", page_data)
+
 
 def getCardData(card_name, set_name, card_number):
     query = []
@@ -168,14 +220,15 @@ def getCardData(card_name, set_name, card_number):
         query.append(f'name:"{card_name}"')
     if set_name:
         query.append(f'set.name:"{set_name}"')
-    
-    query = ' '.join(query)
+
+    query = " ".join(query)
     cards = Card.where(q=query)
     card_data = None
 
     if not cards:
+        messages.error("Card could not be found, enter card information again")
         return None
-    
+
     for card in cards:
         if card.name == card_name and card.number == card_number:
             card_data = card
@@ -204,7 +257,11 @@ def getCardData(card_name, set_name, card_number):
         attacks = {}
         if card_data.attacks:
             for attack in card_data.attacks:
-                attacks[attack.name] = {"cost": attack.cost, "damage": attack.damage, "description": attack.text}
+                attacks[attack.name] = {
+                    "cost": attack.cost,
+                    "damage": attack.damage,
+                    "description": attack.text,
+                }
 
         weaknesses = {}
         if card_data.weaknesses:
@@ -229,7 +286,7 @@ def getCardData(card_name, set_name, card_number):
             attacks=attacks,
             weaknesses=weaknesses,
             resistances=resistances,
-            retreat=card_data.convertedRetreatCost
+            retreat=card_data.convertedRetreatCost,
         )
         card_data.save()
 
@@ -242,35 +299,45 @@ def getCardData(card_name, set_name, card_number):
             type=card.supertype,
             image=card.images.large,
             prices=prices,
-            rules=card.rules
+            rules=card.rules,
         )
         card_data.save()
 
         return card_data
 
-@login_required(login_url="/login/")   
+
+@login_required(login_url="/login/")
 def generateStrategy(request):
     if request.method == "POST":
         try:
             deck = Deck.objects.get(user=request.user)
-            entries = "\n".join([f"{entry.count}x {entry.card.name} ({entry.card.number})" for entry in deck.entries.all()])
+            entries = "\n".join(
+                [
+                    f"{entry.count}x {entry.card.name} ({entry.card.number})"
+                    for entry in deck.entries.all()
+                ]
+            )
             strategy = getDeckStrategy(entries)
-            
+
             return JsonResponse({"strategy": strategy})
         except Exception as e:
             return JsonResponse({"error": str(e)}, status=400)
-        
+
+
 def about(request):
     return render(request, "app1/about.html")
 
+
 def rules(request):
     return render(request, "app1/rules.html")
+
 
 def serverInfo(request):
     server_geodata = requests.get("https://ipwhois.app/json/").json()
     settings_dump = settings.__dict__
 
     return HttpResponse("{}{}".format(server_geodata, settings_dump))
+
 
 def userJoin(request):
     if request.method == "POST":
@@ -280,14 +347,18 @@ def userJoin(request):
             user = join_form.save()
             user.set_password(user.password)
             user.save()
-            return redirect('/')
+
+            return redirect("/login/")
         else:
             page_data = {"join_form": join_form}
+
             return render(request, "app1/join.html", page_data)
     else:
         page_data = {"join_form": JoinForm}
+
         return render(request, "app1/join.html", page_data)
-    
+
+
 def userLogin(request):
     if request.method == "POST":
         login_form = LoginForm(request.POST)
@@ -300,20 +371,27 @@ def userLogin(request):
             if user:
                 if user.is_active:
                     login(request, user)
-                    return redirect('/')
+
+                    return redirect("/")
                 else:
                     return HttpResponse("Your account is not active.")
             else:
                 print("Someone tried to login and failed.")
-                print("They used username: {} and password: {}".format(username, password))
+                print(
+                    "They used username: {} and password: {}".format(username, password)
+                )
+
                 return render(request, "app1/login.html", {"login_form": LoginForm})
         else:
             print("Login form is not valid.")
+
             return render(request, "app1/login.html", {"login_form": LoginForm})
     else:
         return render(request, "app1/login.html", {"login_form": LoginForm})
 
+
 @login_required(login_url="/login/")
 def userLogout(request):
     logout(request)
-    return redirect('/')
+
+    return redirect("/login/")

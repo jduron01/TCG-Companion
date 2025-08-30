@@ -30,7 +30,7 @@ SECRET_KEY = os.getenv("SECRET_KEY")
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 CSRF_TRUSTED_ORIGINS = [
     "http://localhost:8000",
@@ -38,7 +38,7 @@ CSRF_TRUSTED_ORIGINS = [
     "https://localhost:8000",
     "https://localhost:80",
     f"https://{os.getenv('CODESPACE_NAME')}-8000.githubpreview.dev",
-    "https://tcg-companion.com"
+    "https://tcg-companion.com",
 ]
 
 # Application definition
@@ -51,7 +51,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "app1",
-    "bootstrap4"
+    "bootstrap4",
 ]
 
 MIDDLEWARE = [
@@ -95,7 +95,7 @@ DATABASES = {
         "USER": "my_django_user",
         "PASSWORD": os.getenv("DB_PASSWORD"),
         "HOST": "34.94.202.76",
-        "PORT": 5432
+        "PORT": 5432,
     }
 }
 

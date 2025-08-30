@@ -28,15 +28,17 @@ STATIC_ROOT = os.path.join(BASE_DIR, "staticfiles")
 SECRET_KEY = os.getenv("SECRET_KEY")
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = False
+DEBUG = True
 
-ALLOWED_HOSTS = ['*']
+ALLOWED_HOSTS = ["*"]
 
 CSRF_TRUSTED_ORIGINS = [
+    "http://localhost:8000",
+    "http://localhost:80",
     "https://localhost:8000",
     "https://localhost:80",
     f"https://{os.getenv('CODESPACE_NAME')}-8000.githubpreview.dev",
-    f"https://{os.getenv('CODESPACE_NAME')}-80.githubpreview.dev"
+    "https://tcg-companion.com",
 ]
 
 # Application definition
@@ -49,7 +51,7 @@ INSTALLED_APPS = [
     "django.contrib.messages",
     "django.contrib.staticfiles",
     "app1",
-    "bootstrap4"
+    "bootstrap4",
 ]
 
 MIDDLEWARE = [

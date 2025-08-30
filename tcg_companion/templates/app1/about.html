@@ -4,26 +4,26 @@
 <head>
     {% load static %}
     {% load bootstrap4 %}
-    <meta charset="utf-8">
-    <title>HTML TCG Companion</title>
     {% include "bootstrap.html" %}
-    <link rel="stylesheet" href="{% static 'pokemon.css' %}?v=1.01" />
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCG Companion</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}?v=1.01" />
 </head>
 
-<body style ="background-color: #2c2c2c; color: #f5f5f5;">
+<body>
     {% include "navigation.html" %}
-    <h1>About the Website</h1>
-    <div class="text-center">
-        <div style ="display: inline-block;">
-            <img src="{% static '201-v-2534047325.png' %}" alt="Unown V" class="unownv">
-            <img src="{% static 'pokemon-logo.png' %}" alt="Pokémon Logo" class="logo">
-            <img src="{% static 'unown-j-918977700.png' %}" alt="Unown J" class="unownj">
-        </div>
-    </div>
-    <div class = "jumbotron, margin" >
-        <p> A buddy and I decided to make this website for a class project. Though the real purpose of this website was as a collector myself to store my cards into one website to be able to keep tabs on all of them instead of going through book after book. 
-            As well as give competitive players an advantage on how to make decks and if the decks are competive viable! Thanks for checking out our website and good luck catching them all! 
+    <div class="container">
+        <h1>About the Website</h1>
+        <p>
+            A buddy and I decided to make this website for a class project. One of the use cases of this
+            web application is to store cards into the website to be able to keep track of all of them
+            instead of going through a binder of cards. In addition, this can help give competitive players an
+            advantage on how to improve decks by receiving strategies from Google Gemini. Thanks for checking out our
+            website and
+            good luck catching them all!
         </p>
     </div>
 </body>
+
 </html>

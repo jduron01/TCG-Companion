@@ -1,21 +1,30 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
+
 <head>
-    {% include "bootstrap.html" %}
     {% load static %}
     {% load bootstrap4 %}
+    {% include "bootstrap.html" %}
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>TCG Companion</title>
+    <link rel="stylesheet" href="{% static 'styles.css' %}?v=1.01" />
 </head>
+
 <body>
-    <div class="container">
+    {% include "navigation.html" %}
+
+    <div id="login-container" class="container">
         <div class="jumbotron">
-            <h1>Login</h1>
-            <form action="/login/" method="POST">
+            <h1>Login to Create a Deck</h1>
+            <form class="login" action="/login/" method="POST" autocomplete="off">
                 {% csrf_token %}
                 {% bootstrap_form login_form %}
-                <input type="submit" class="btn btn-primary" value="Login" />
-                <br/>
-                Click <a href="/join">here</a> to join.
+                <button class="btn btn-primary w-100">Login</button>
             </form>
+            <a class="join-link" href="/join">Create a New Account</a>
         </div>
     </div>
 </body>
+
 </html>

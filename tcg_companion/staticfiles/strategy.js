@@ -1,10 +1,10 @@
-function AI () {
+function generateStrategy() {
     const form = document.getElementById("strategy-form");
     const box = document.getElementById("strategy-box");
     const text = document.getElementById("strategy-text");
 
     if (form) {
-        form.addEventListener("submit", function (e) {
+        form.addEventListener("submit", e => {
             e.preventDefault();
 
             fetch(form.action || window.location.href, {
@@ -15,16 +15,20 @@ function AI () {
                 },
                 body: JSON.stringify({})
             })
-            .then(response => response.json())
-            .then(data => {
-                if (data.strategy) {
-                    text.innerText = data.strategy;
+                .then(response => response.json())
+                .then(data => {
+                    if (data.strategy) {
+                        text.innerText = data.strategy;
+                        box.style.display = "block";
+                    } else if (data.error) {
+                        text.innerText = "Error: " + data.error;
+                        box.style.display = "block";
+                    }
+                })
+                .catch(error => {
+                    text.innerText = "Network error: " + error;
                     box.style.display = "block";
-                } else if (data.error) {
-                    text.innerText = "Error: " + data.error;
-                    box.style.display = "block";
-                }
-            });
+                });
         });
     }
 };
